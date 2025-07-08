@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:map="http://schemas.android.com/tools">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <RelativeLayout
+        android:id="@+id/rl_top"
+        android:layout_marginTop="11dp"
+        android:layout_marginStart="11dp"
+        android:layout_width="match_parent"
+        android:layout_height="38dp">
+        <RelativeLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_button_menu">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/bt_menu"
+                android:layout_centerInParent="true"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:background="@drawable/ic_menu"/>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/bt_change_search"
+            android:background="@drawable/bg_button_menu"
+            android:layout_centerVertical="true"
+            android:layout_marginBottom="5dp"
+            android:layout_marginStart="50dp"
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="25dp">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_text_search"
+                android:layout_marginStart="5dp"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="25dp"
+                android:text="Search for address"
+                android:textColor="#ffffff"
+                app:fontFamily="@font/nunito_bold"
+                android:textSize="13dp"
+                android:textAllCaps="false"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:padding="5dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_down"/>
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:gravity="center"
+            android:id="@+id/tv_satellite"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="60dp"
+            android:layout_width="60dp"
+            android:layout_height="25dp"
+            android:background="@drawable/bg_button_menu"
+            android:text="Satellite"
+            android:textColor="#ffffff"
+            app:fontFamily="@font/nunito_bold"
+            android:textSize="13dp"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_margin="11dp"
+        android:layout_below="@+id/rl_top"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/ln_lat_lng"
+            android:layout_marginEnd="-1dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_search"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent">
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:singleLine = "true"
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:inputType="number"
+                android:digits="1234567890.-"
+                android:textColor="#20201f"
+                android:fontFamily="@font/nunito_regular"
+                android:layout_weight="1"
+                android:paddingStart="10dp"
+                android:hint="Latitude"
+                android:id="@+id/edt_latitude"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"/>
+
+            <View
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#4D000000"/>
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:singleLine = "true"
+                android:imeOptions="actionDone"
+                android:maxLines="1"
+                android:inputType="number"
+                android:digits="1234567890.-"
+                android:textColor="#20201f"
+                android:fontFamily="@font/nunito_regular"
+                android:layout_weight="1"
+                android:paddingStart="10dp"
+                android:hint="Longitude"
+                android:id="@+id/edt_longitude"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"/>
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/edt_address"
+            android:imeOptions="actionDone"
+            android:maxLines="1"
+            android:fontFamily="@font/nunito_regular"
+            android:paddingStart="10dp"
+            android:hint="Address or place"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:background="@drawable/bg_search"
+            android:layout_height="match_parent"
+            android:inputType="text"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/bt_search"
+            app:fontFamily="@font/nunito_semibold"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_button_search"
+            android:text="Search"
+            android:textColor="#ffffff"/>
+
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:textAllCaps="false"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/tv_location_current"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_button_location_current"
+        android:text=" String It Up "
+        android:textColor="#ffffff"
+        app:fontFamily="@font/nunito_semibold"
+        android:textSize="16sp"/>
+
+    <RelativeLayout
+        android:visibility="gone"
+        android:id="@+id/rl_bg_menu"
+        android:elevation="2dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/view_bg_menu"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"/>
+
+        <RelativeLayout
+            android:visibility="gone"
+            android:id="@+id/rl_animation_menu"
+            android:layout_marginEnd="100dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#0099ED">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="80dp">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:id="@+id/ln_infouser"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginTop="50dp"
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/img_user"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:src="@drawable/user"/>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/tv_guest"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Guest"
+                            android:textColor="#ffffff"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="15dp"
+                            android:fontFamily="@font/nunito_bold"
+                            android:textSize="20sp"/>
+
+                        <LinearLayout
+                            android:id="@+id/ln_login"
+                            android:layout_gravity="center|start"
+                            android:orientation="vertical"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:id="@+id/tv_name_user"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Name"
+                                android:textColor="#ffffff"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="15dp"
+                                android:fontFamily="@font/nunito_bold"
+                                android:textSize="18sp"/>
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:id="@+id/tv_email_user"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Email"
+                                android:textColor="#ffffff"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="15dp"
+                                android:fontFamily="@font/nunito_regular"
+                                android:textSize="16sp"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_about"
+                        android:layout_marginTop="30dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="About HammockLife"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_social"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Get Social"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_marketplace"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MarketPlace"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_contact"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Contact Us"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_rate"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rate App"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_tutorial"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tutorial"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_Privacy"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Privacy Policy"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_my_hammock"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="My Hammocks"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:visibility="gone"
+                        android:id="@+id/tv_admin"
+                        android:layout_marginTop="20dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Admin"
+                        android:textColor="#ffffff"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/nunito_semibold"
+                        android:textSize="18sp"/>
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+
+            <LinearLayout
+                android:id="@+id/ln_log_out"
+                android:layout_marginBottom="30dp"
+                android:gravity="center_vertical"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_logout"/>
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Log Out"
+                    android:textColor="#ffffff"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="3dp"
+                    android:fontFamily="@font/nunito_bold"
+                    android:textSize="17sp"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

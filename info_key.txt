@@ -1,0 +1,2 @@
+alias: key_hammock
+password: abcde12345-

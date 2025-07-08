@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">HammockLife</string>
+    <string name="title_activity_frm__map">Map</string>
+    <string name="imagepicker_multiselect_done">Done</string>
+    <string name="imagepicker_multiselect_not_enough_singular">You have to select 1 more image</string>
+    <string name="imagepicker_multiselect_not_enough_plural">You have to select %d more images</string>
+    <string name="imagepicker_multiselect_enough_singular">You have selected 1 image</string>
+    <string name="imagepicker_multiselect_enough_plural">You have selected %d images</string>
+    <string name="imagepicker_multiselect_overselect">You cannot select more than %d images</string>
+    <string name="imagepicker_gallery_intent_title">Select Multiple Images</string>
+    <string name="imagepicker_no_image_text_view">There are no image in your device.</string>
+    <string name="facebook_app_id">565210890984336</string>
+    <string name="fb_login_protocol_scheme">fb565210890984336</string>
+    <string name="client_id">your_client_id</string>
+    <string name="redirect_url">https://instagram.com/</string>
+    <string name="base_url">https://api.instagram.com/</string>
+    <string name="get_user_info_url">https://api.instagram.com/v1/users/self/?access_token=</string>
+</resources>

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/bg_singin"
+        android:scaleType="fitXY"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimaryDark">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/img_back"
+            android:layout_centerVertical="true"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/ic_back"
+            android:layout_marginStart="5dp"/>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_centerInParent="true"
+            android:textColor="#ffffff"
+            android:textAllCaps="true"
+            android:text="My Profile"
+            android:fontFamily="@font/nunito_bold"/>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_save"
+            android:layout_marginEnd="10dp"
+            android:gravity="center"
+            android:layout_alignParentEnd="true"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:text="Save"
+            android:fontFamily="@font/nunito_regular"/>
+
+    </RelativeLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_marginTop="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/img_avatar"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/user"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:text="Email"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/nunito_regular"
+                android:textColor="#777777"/>
+
+            <LinearLayout
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="45dp">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:gravity="center|start"
+                    android:id="@+id/tv_email"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:textColor="#686868"
+                    android:textSize="16dp"
+                    android:fontFamily="@font/nunito_regular"
+                    android:background="@android:color/transparent"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#8c8c8c"/>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:text="Name"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/nunito_regular"
+                android:textColor="#777777"/>
+
+            <LinearLayout
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="45dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:inputType="textCapWords"
+                    android:imeOptions="actionDone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:gravity="center|start"
+                    android:id="@+id/edt_name"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:textColor="#212121"
+                    android:textSize="16dp"
+                    android:fontFamily="@font/nunito_regular"
+                    android:background="@android:color/transparent"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#8c8c8c"/>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:text="Joined Date"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/nunito_regular"
+                android:textColor="#777777"/>
+
+            <LinearLayout
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="45dp">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:gravity="center|start"
+                    android:id="@+id/tv_date_join"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:textColor="#686868"
+                    android:textSize="16dp"
+                    android:fontFamily="@font/nunito_regular"
+                    android:background="@android:color/transparent"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#8c8c8c"/>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:text="Current Living Location"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/nunito_regular"
+                android:textColor="#777777"/>
+
+            <LinearLayout
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="45dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:inputType="text"
+                    android:imeOptions="actionDone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:gravity="center|start"
+                    android:id="@+id/edt_location"
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:textColor="#212121"
+                    android:textSize="16dp"
+                    android:fontFamily="@font/nunito_regular"
+                    android:background="@android:color/transparent"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#8c8c8c"/>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:text="Employment"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/nunito_regular"
+                android:textColor="#777777"/>
+
+            <LinearLayout
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="46dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:gravity="center|start"
+                        android:id="@+id/tv_employment"
+                        android:layout_marginEnd="20dp"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:textColor="#212121"
+                        android:textSize="16dp"
+                        android:fontFamily="@font/nunito_regular"
+                        android:background="@android:color/transparent"/>
+
+                    <ImageView
+                        android:layout_marginEnd="10dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/ic_drop_arrow"/>
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#8c8c8c"/>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14dp"
+                android:text="Hobbies"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/nunito_regular"
+                android:textColor="#777777"/>
+
+            <LinearLayout
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <View
+                        android:id="@+id/view1"
+                        android:layout_width="1dp"
+                        android:layout_height="45dp"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_centerVertical="true"
+                        android:gravity="center|start"
+                        android:id="@+id/tv_hobbies"
+                        android:layout_marginEnd="25dp"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#212121"
+                        android:textSize="16dp"
+                        android:fontFamily="@font/nunito_regular"
+                        android:background="@android:color/transparent"/>
+
+                    <ImageView
+                        android:layout_marginEnd="10dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:src="@drawable/ic_drop_arrow"/>
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#8c8c8c"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <RelativeLayout
+        android:visibility="gone"
+        android:id="@+id/rl_loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000"
+            android:alpha="0.5"/>
+
+        <ProgressBar
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerInParent="true"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

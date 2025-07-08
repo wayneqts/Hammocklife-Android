@@ -1,0 +1,22 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+}
+rootProject.name = "hammocklife-android"
+include ':app'

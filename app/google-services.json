@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "71139676647",
+    "firebase_url": "https://hammocklife-a7eff.firebaseio.com",
+    "project_id": "hammocklife-a7eff",
+    "storage_bucket": "hammocklife-a7eff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71139676647:android:2cd8f7d57f87c472f8ad42",
+        "android_client_info": {
+          "package_name": "com.app.hammocklife"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "71139676647-vrmnj4mmtr521infrkuhpvr7a9nuqice.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.hammocklife",
+            "certificate_hash": "62adf1dc4b417129343ee1e5d8d215c196bc91e4"
+          }
+        },
+        {
+          "client_id": "71139676647-kfslnnvrca641mmdq05csvtvmo79mhoa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBd_UHEsrpQq8IBCmmyqptRI2oLwVgeb0Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "71139676647-kfslnnvrca641mmdq05csvtvmo79mhoa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "71139676647-vt4s05grgrq7n2m6c8po0ofojtblgf2h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hammocklife"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

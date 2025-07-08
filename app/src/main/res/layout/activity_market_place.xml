@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MarketPlace">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimaryDark">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/img_back"
+            android:layout_centerVertical="true"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/ic_back"
+            android:layout_marginStart="5dp"/>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_centerInParent="true"
+            android:textColor="#ffffff"
+            android:textAllCaps="true"
+            android:text="MarketPlace"
+            android:fontFamily="@font/nunito_bold"/>
+
+    </RelativeLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo1"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="195dp"
+                android:src="@drawable/logo1"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo2"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:src="@drawable/logo2"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo3"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:src="@drawable/logo3"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo4"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:src="@drawable/logo4"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo5"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:src="@drawable/logo5"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo6"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:src="@drawable/logo6"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo7"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:src="@drawable/logo7"/>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_logo8"
+                android:scaleType="fitXY"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:src="@drawable/logo8"/>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
