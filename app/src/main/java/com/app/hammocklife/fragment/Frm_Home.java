@@ -107,6 +107,8 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
     private AppCompatEditText edt_longitude, edt_latitude, edt_address;
     private String messageAddNew = "";
     private LinearLayout bt_change_search, ln_lat_lng;
+    public LatLng selectedLatLng;
+    int REFRESH_CODE = 977;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -302,65 +304,65 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                             location_current = location;
                             LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
                             mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+                            mDataAllHamocks.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (mMap != null) {
+                                        try {
+                                            mMap.clear();
+                                            LatLng sydney = new LatLng(location_current.getLatitude(), location_current.getLongitude());
+                                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(sydney, 16.0f));
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    arrDataAllHamock.clear();
+                                    arrHammock.clear();
+                                    for (final DataSnapshot ds : dataSnapshot.getChildren()) {
+                                        ObjectLocation objectLocation = null;
+                                        try{
+                                            LatLng sydney2 = new LatLng(ds.child("location").child("_lat").getValue(Double.class), ds.child("location").child("_lng").getValue(Double.class));
+                                            Marker marker = mMap.addMarker(new MarkerOptions().position(sydney2).title(ds.child("address").getValue(String.class)).icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("ic_pin", 70, 70))));
+                                            arrDataAllHamock.add(marker);
+                                            objectLocation = new ObjectLocation(ds.child("location").child("_lat").getValue(Double.class), ds.child("location").child("_lng").getValue(Double.class));
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        ArrayList<String> arrUrlLink = new ArrayList<>();
+                                        try {
+                                            for (int q = 0; q <= ds.child("photoURLs").getChildrenCount()-1; q++){
+                                                arrUrlLink.add(ds.child("photoURLs").child(q+"").getValue(String.class));
+                                            }
+                                        }catch (Exception e){
+                                            e.printStackTrace();
+                                        }
+                                        ObjectHammocks objectHammocks = new ObjectHammocks(
+                                                ds.getKey(),
+                                                ds.child("address").getValue(String.class),
+                                                ds.child("createdBy").getValue(String.class),
+                                                ds.child("description").getValue(String.class),
+                                                ds.child("name").getValue(String.class),
+                                                ds.child("status").getValue(String.class),
+                                                ds.child("userUDID").getValue(String.class),
+                                                ds.child("createdAt").getValue(Long.class),
+                                                ds.child("serverTime").getValue(Long.class),
+                                                objectLocation,
+                                                arrUrlLink,
+                                                ""
+                                        );
+                                        arrHammock.add(objectHammocks);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
                             Log.e("error location1", location_current.getLongitude()+" -- "+location_current.getLatitude()+" -- ");
                         }catch (Exception e){
                             e.printStackTrace();
                         }
-                    }
-                });
-                mDataAllHamocks.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (mMap != null) {
-                            try {
-                                mMap.clear();
-                                LatLng sydney = new LatLng(location_current.getLatitude(), location_current.getLongitude());
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(sydney, 16.0f));
-                            }catch (Exception e){
-                                e.printStackTrace();
-                            }
-                        }
-                        arrDataAllHamock.clear();
-                        arrHammock.clear();
-                        for (final DataSnapshot ds : dataSnapshot.getChildren()) {
-                            ObjectLocation objectLocation = null;
-                            try{
-                                LatLng sydney2 = new LatLng(ds.child("location").child("_lat").getValue(Double.class), ds.child("location").child("_lng").getValue(Double.class));
-                                Marker marker = mMap.addMarker(new MarkerOptions().position(sydney2).title(ds.child("address").getValue(String.class)).icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("ic_pin", 70, 70))));
-                                arrDataAllHamock.add(marker);
-                                objectLocation = new ObjectLocation(ds.child("location").child("_lat").getValue(Double.class), ds.child("location").child("_lng").getValue(Double.class));
-                            }catch (Exception e){
-                                e.printStackTrace();
-                            }
-                            ArrayList<String> arrUrlLink = new ArrayList<>();
-                            try {
-                                for (int q = 0; q <= ds.child("photoURLs").getChildrenCount()-1; q++){
-                                    arrUrlLink.add(ds.child("photoURLs").child(q+"").getValue(String.class));
-                                }
-                            }catch (Exception e){
-                                e.printStackTrace();
-                            }
-                            ObjectHammocks objectHammocks = new ObjectHammocks(
-                                    ds.getKey(),
-                                    ds.child("address").getValue(String.class),
-                                    ds.child("createdBy").getValue(String.class),
-                                    ds.child("description").getValue(String.class),
-                                    ds.child("name").getValue(String.class),
-                                    ds.child("status").getValue(String.class),
-                                    ds.child("userUDID").getValue(String.class),
-                                    ds.child("createdAt").getValue(Long.class),
-                                    ds.child("serverTime").getValue(Long.class),
-                                    objectLocation,
-                                    arrUrlLink,
-                                    ""
-                            );
-                            arrHammock.add(objectHammocks);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
                     }
                 });
             }
@@ -375,7 +377,8 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
             if (currentUser.getEmail().equals("android@gmail.com")){
                 dialogLogin();
             }else {
-                startActivity(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser).putExtra("lat", marker.getPosition().latitude).putExtra("long", marker.getPosition().longitude));
+                startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)
+                        .putExtra("lat", marker.getPosition().latitude).putExtra("long", marker.getPosition().longitude), REFRESH_CODE);
                 getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 if (null != currentLocationMarker) {
                     currentLocationMarker.remove();
@@ -505,7 +508,13 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                 try {
                     FirebaseUser currentUser = mAuth.getCurrentUser();
                     if (currentUser != null && currentUser.getEmail() != null && !currentUser.getEmail().equals("android@gmail.com")) {
-                        startActivity(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser).putExtra("lat", location_current.getLatitude()).putExtra("long", location_current.getLongitude()));
+                        if (selectedLatLng != null){
+                            startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)
+                                    .putExtra("lat", selectedLatLng.latitude).putExtra("long", selectedLatLng.longitude), REFRESH_CODE);
+                        }else {
+                            startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)
+                                    .putExtra("lat", location_current.getLatitude()).putExtra("long", location_current.getLongitude()), REFRESH_CODE);
+                        }
                         getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         if (null != currentLocationMarker) {
                             currentLocationMarker.remove();
@@ -732,7 +741,8 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                         if (currentUser.getEmail().equals("android@gmail.com")){
                             dialogLogin();
                         }else {
-                            startActivity(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser).putExtra("lat", lat).putExtra("long", lng));
+                            startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)
+                                    .putExtra("lat", lat).putExtra("long", lng), REFRESH_CODE);
                             getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                             if (null != currentLocationMarker) {
                                 currentLocationMarker.remove();
@@ -799,7 +809,16 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == REFRESH_CODE){
+            selectedLatLng = null;
+        }
+    }
+
+    @Override
     public void onMapLongClick(LatLng latLng) {
+        selectedLatLng = latLng;
         if (null != currentLocationMarker) {
             currentLocationMarker.remove();
         }

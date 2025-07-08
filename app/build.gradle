@@ -38,6 +38,9 @@ android {
     packagingOptions {
         resources.excludes.add("META-INF/*")
     }
+    buildFeatures{
+        buildConfig = true
+    }
     namespace 'com.app.hammocklife'
 }
 

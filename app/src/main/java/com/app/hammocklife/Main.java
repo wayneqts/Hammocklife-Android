@@ -198,5 +198,10 @@ public class Main extends BaseActivity {
         if (frm_login != null) {
             frm_login.onActivityResult(requestCode, resultCode, data);
         }
+        if (frm_home != null){
+            if (resultCode == 977){
+                frm_home.selectedLatLng = null;
+            }
+        }
     }
 }
