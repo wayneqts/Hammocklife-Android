@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -29,6 +31,7 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.view.GravityCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -85,6 +88,7 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
     ObjectUser dataUser;
     int countImage = 0;
     int CODE_CAM = 1, CODE_GALLERY = 2;
+    AppCompatImageButton img_back;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,10 +100,17 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
         if (getIntent() != null) {
             dataUser = (ObjectUser) getIntent().getSerializableExtra("dataUser");
         }
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                img_back.performClick();
+            }
+        };
+        this.getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     private void initUI() {
-        AppCompatImageButton img_back = findViewById(R.id.img_back);
+        img_back = findViewById(R.id.img_back);
         AppCompatButton bt_submit = findViewById(R.id.bt_submit);
         rl_loading = findViewById(R.id.rl_loading);
         edt_location = findViewById(R.id.edt_location);
@@ -493,6 +504,7 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
                     File file = new File(android.os.Environment.getExternalStorageDirectory() + "/" + getPackageName() + "/");
                     getFile2(file);
                     QTSConstrains.setName(AddNew.this, 0);
+                    setResult(977);
                     finish();
                     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 } catch (Exception e) {
@@ -543,14 +555,6 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
     @Override
     public void onSingleImageSelected(Uri uri, String tag) {
 
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        File file = new File(android.os.Environment.getExternalStorageDirectory() + "/" + getPackageName() + "/");
-        getFile2(file);
-        QTSConstrains.setName(AddNew.this, 0);
     }
 
     @Override
