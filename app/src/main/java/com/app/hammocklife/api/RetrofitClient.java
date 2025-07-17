@@ -1,4 +1,4 @@
-package com.app.hammocklife.custom;
+package com.app.hammocklife.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

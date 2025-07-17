@@ -26,8 +26,11 @@ import com.app.hammocklife.InforUser;
 import com.app.hammocklife.Main;
 import com.app.hammocklife.R;
 import com.app.hammocklife.adapter.MyRecyclerViewAdapter;
-import com.app.hammocklife.custom.RetrofitClient;
+import com.app.hammocklife.api.APIService;
+import com.app.hammocklife.api.APIUtils;
+import com.app.hammocklife.api.RetrofitClient;
 import com.app.hammocklife.custom.ServiceCallbacks;
+import com.app.hammocklife.custom.Utils;
 import com.app.hammocklife.model.ObjectHammocks;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -36,11 +39,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.JsonObject;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -52,6 +59,7 @@ public class Frm_Deails_Admin extends BaseFragment implements View.OnClickListen
     RecyclerView rcv_photo;
     MyRecyclerViewAdapter myRecyclerViewAdapter;
     AppCompatButton bt_reject, bt_approve;
+    Main activity;
     private DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
     public Frm_Deails_Admin(ObjectHammocks objectHammocks) {
@@ -62,7 +70,7 @@ public class Frm_Deails_Admin extends BaseFragment implements View.OnClickListen
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
+        activity = (Main) getActivity();
         View view = inflater.inflate(R.layout.frm_details_admin, container, false);
         initUI(view);
         return view;
@@ -121,7 +129,7 @@ public class Frm_Deails_Admin extends BaseFragment implements View.OnClickListen
                     mDatabase.child("my_hammock").child(objectHammocks.getUserUDID()).child(objectHammocks.getKey()).child("noteFromAdmin").setValue(input.getText().toString() + "");
                     mDatabase.child("my_hammock").child(objectHammocks.getUserUDID()).child(objectHammocks.getKey()).child("status").setValue("reject");
                     mDatabase.child("pending_approval").child(objectHammocks.getKey()).removeValue();
-                    pushNoti("Hammocks Reject");
+                    getTokenUser("Hammocks Reject");
                     hideLoading();
                     try {
                         assert getFragmentManager() != null;
@@ -159,7 +167,7 @@ public class Frm_Deails_Admin extends BaseFragment implements View.OnClickListen
                     for (int q = 0; q <= objectHammocks.getPhotoURLs().size() - 1; q++) {
                         mDatabase.child("all_hammocks").child(databaseReference.getKey()).child("photoURLs").child(q + "").setValue(objectHammocks.getPhotoURLs().get(q));
                     }
-                    pushNoti("Hammocks Approve");
+                    getTokenUser("Hammocks Approve");
                 }
             });
             mDatabase.child("pending_approval").child(objectHammocks.getKey()).removeValue();
@@ -221,46 +229,68 @@ public class Frm_Deails_Admin extends BaseFragment implements View.OnClickListen
                 break;
         }
     }
-
-    private void pushNoti(final String text) {
-        try {
-            mDatabase.child("device_tokens").child(objectHammocks.getUserUDID()).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    try{
-                        for (final DataSnapshot ds : dataSnapshot.getChildren()) {
-                            final Map<String, Object> requestBody = new HashMap<>();
-                            requestBody.put("to", ds.getKey());
-                            DataNoti dataNoti = new DataNoti("HammockLife", text);
-                            requestBody.put("notification", dataNoti);
-                            RetrofitClient.getClient("https://fcm.googleapis.com/").create(ServiceCallbacks.class).postToken(
-                                    "key=AAAAAEJBBUec:APA91bErbnZrDrrVTRbFG-v5Qiik_VdlrNVewbxGbeLLYDeQ2gYT59LkkHLZ4UR6ZeWPC0RjureOr8wr8wkisaJEkId1fJSUG09ogD5qjvavQNG0m3EV7spPpvP5d5WwGwS9sb1hHByw",
-                                    requestBody
-                            ).enqueue(new Callback<JsonObject>() {
-                                @Override
-                                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-
-                                }
-
-                                @Override
-                                public void onFailure(Call<JsonObject> call, Throwable t) {
-
-                                }
-                            });
+    private void getTokenUser(String name) {
+        mDatabase.child("device_tokens").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()){
+                for (DataSnapshot ds : task.getResult().getChildren()) {
+                    if (Objects.equals(ds.getKey(), objectHammocks.getUserUDID())){
+                        for (DataSnapshot dsCh : ds.getChildren()){
+                            getAccessToken(name, dsCh.getKey());
                         }
-                    }catch (Exception e){
-                        e.printStackTrace();
                     }
                 }
+            }
+        });
+    }
+    // get access token
+    private void getAccessToken(String name, String userTk){
+        APIService api = APIUtils.getOauthService();
+        api.getAccessToken("urn:ietf:params:oauth:grant-type:jwt-bearer", Utils.createJwt(activity)).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(String.valueOf(response.body()));
+                        String token = jsonObject.optString("token_type")+" "+jsonObject.optString("access_token");
+                        sendPush(name, userTk, token);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                } else {
+                    Log.e("ACCESS_TOKEN", "Error: " + response.code());
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+
+            }
+        });
+    }
+
+    // send push
+    private void sendPush(String name, String userTk, String accTk){
+        APIService api = APIUtils.getMessageService();
+        DataNoti dataNoti = new DataNoti("HammockLife", name);
+        Map<String, Object> messData = new HashMap<>();
+        messData.put("token", userTk);
+        messData.put("notification", dataNoti);
+        Map<String, Object> data = new HashMap<>();
+        data.put("message", messData);
+        api.sendPush("v1/projects/hammocklife-a7eff/messages:send", accTk, data).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
+                    Log.d("TAG", "Success");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+
+            }
+        });
     }
 
     class DataNoti {

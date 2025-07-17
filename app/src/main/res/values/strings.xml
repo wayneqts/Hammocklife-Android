@@ -15,4 +15,6 @@
     <string name="redirect_url">https://instagram.com/</string>
     <string name="base_url">https://api.instagram.com/</string>
     <string name="get_user_info_url">https://api.instagram.com/v1/users/self/?access_token=</string>
+    <string name="permission_notifications_denied">Permission Notifications denied</string>
+    <string name="please_allow_map_access_to_use_the_app">Please allow map access to use the app</string>
 </resources>

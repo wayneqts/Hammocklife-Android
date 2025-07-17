@@ -13,7 +13,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -30,16 +29,14 @@ import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.core.view.GravityCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.hammocklife.adapter.MyRecyclerViewAdapterSelectImage;
+import com.app.hammocklife.api.APIService;
+import com.app.hammocklife.api.APIUtils;
 import com.app.hammocklife.custom.BSImagePicker;
-import com.app.hammocklife.custom.RetrofitClient;
-import com.app.hammocklife.custom.ServiceCallbacks;
-import com.app.hammocklife.custom.Utility;
+import com.app.hammocklife.custom.Utils;
 import com.app.hammocklife.model.ObjectUser;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
@@ -51,11 +48,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.gson.JsonObject;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -93,7 +92,7 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.frm_add_new);
+        setContentView(R.layout.activity_add_new);
         File file = new File(android.os.Environment.getExternalStorageDirectory() + "/" + getPackageName() + "/");
         getFile2(file);
         initUI();
@@ -425,7 +424,7 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
                 for (int q = 0; q <= stringImage.size() - 1; q++) {
                     mDatabase.child("pending_approval").child(key).child("photoURLs").child(q + "").setValue(stringImage.get(q));
                 }
-                pushNoti(edt_name.getText().toString(), edt_location.getText().toString());
+                getTokenAdmin(edt_name.getText().toString(), edt_location.getText().toString());
                 try {
                     rl_loading.setVisibility(View.GONE);
                     new AlertDialog.Builder(AddNew.this)
@@ -445,45 +444,65 @@ public class AddNew extends BaseActivity implements View.OnClickListener, BSImag
         });
     }
 
-    private void pushNoti(final String name, final String address) {
-        try {
-            mDatabase.child("admin_device_tokens").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+    private void getTokenAdmin(String name, String address) {
+        mDatabase.child("admin_device_tokens").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()){
+                for (DataSnapshot ds : task.getResult().getChildren()) {
+                    getAccessToken(name, address, ds.getKey());
+                }
+            }
+        });
+    }
+
+    // get access token
+    private void getAccessToken(String name, String address, String adTk){
+        APIService api = APIUtils.getOauthService();
+        api.getAccessToken("urn:ietf:params:oauth:grant-type:jwt-bearer", Utils.createJwt(this)).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
                     try {
-                        for (final DataSnapshot ds : dataSnapshot.getChildren()) {
-                            final Map<String, Object> requestBody = new HashMap<>();
-                            requestBody.put("to", ds.getKey());
-                            DataNoti dataNoti = new DataNoti("A new Hammock is added", "Name: " + name + "\n" + "Address: " + address);
-                            requestBody.put("notification", dataNoti);
-                            RetrofitClient.getClient("https://fcm.googleapis.com/").create(ServiceCallbacks.class).postToken(
-                                    "key=AAAAEJBBUec:APA91bErbnZrDrrVTRbFG-v5Qiik_VdlrNVewbxGbeLLYDeQ2gYT59LkkHLZ4UR6ZeWPC0RjureOr8wr8wkisaJEkId1fJSUG09ogD5qjvavQNG0m3EV7spPpvP5d5WwGwS9sb1hHByw",
-                                    requestBody
-                            ).enqueue(new Callback<JsonObject>() {
-                                @Override
-                                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-
-                                }
-
-                                @Override
-                                public void onFailure(Call<JsonObject> call, Throwable t) {
-
-                                }
-                            });
-                        }
-                    } catch (Exception e) {
+                        JSONObject jsonObject = new JSONObject(String.valueOf(response.body()));
+                        String token = jsonObject.optString("token_type")+" "+jsonObject.optString("access_token");
+                        sendPush(name, address, adTk, token);
+                    } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                } else {
+                    Log.e("ACCESS_TOKEN", "Error: " + response.code());
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+
+            }
+        });
+    }
+
+    // send push
+    private void sendPush(String name, String address, String adTk, String accTk){
+        APIService api = APIUtils.getMessageService();
+        DataNoti dataNoti = new DataNoti("A new Hammock is added", "Name: " + name + "\n" + "Address: " + address);
+        Map<String, Object> messData = new HashMap<>();
+        messData.put("token", adTk);
+        messData.put("notification", dataNoti);
+        Map<String, Object> data = new HashMap<>();
+        data.put("message", messData);
+        api.sendPush("v1/projects/hammocklife-a7eff/messages:send", accTk, data).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
+                    Log.d("TAG", "Success");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+
+            }
+        });
     }
 
     class DataNoti {

@@ -1,7 +1,10 @@
 package com.app.hammocklife.fragment;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -73,8 +76,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -109,11 +116,12 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
     private LinearLayout bt_change_search, ln_lat_lng;
     public LatLng selectedLatLng;
     int REFRESH_CODE = 977;
+    Main activity;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
+        activity = (Main) getActivity();
         view = inflater.inflate(R.layout.frm_home, container, false);
         initUI();
         return view;
@@ -280,7 +288,7 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
     public void onMapReady(GoogleMap googleMap) {
         try {
             googleMap.setOnMarkerClickListener(this);
-            if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     || ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
@@ -292,7 +300,7 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                 mMap = googleMap;
                 mMap.setOnMarkerClickListener(this);
                 mMap.setOnMapLongClickListener(this);
-                mLocationManager = (LocationManager) Objects.requireNonNull(getActivity()).getSystemService(LOCATION_SERVICE);
+                mLocationManager = (LocationManager) activity.getSystemService(LOCATION_SERVICE);
                 assert mLocationManager != null;
                 mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
                         0, mLocationListener);
@@ -374,7 +382,7 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
     @Override
     public boolean onMarkerClick(Marker marker) {
         if (marker.getTitle().equals("Add New")){
-            if (currentUser.getEmail().equals("android@gmail.com")){
+            if (currentUser.isAnonymous()){
                 dialogLogin();
             }else {
                 startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)
@@ -445,8 +453,8 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                             dialogAddNewError("Please enter address");
                             return;
                         }
-                        InputMethodManager imm = (InputMethodManager) Objects.requireNonNull(getActivity()).getSystemService(INPUT_METHOD_SERVICE);
-                        Objects.requireNonNull(imm).hideSoftInputFromWindow(Objects.requireNonNull(getActivity().getCurrentFocus()).getWindowToken(), 0);
+                        InputMethodManager imm = (InputMethodManager) activity.getSystemService(INPUT_METHOD_SERVICE);
+                        Objects.requireNonNull(imm).hideSoftInputFromWindow(Objects.requireNonNull(activity.getCurrentFocus()).getWindowToken(), 0);
                         Geocoder geoCoder = new Geocoder(getActivity(), Locale.getDefault());
                         List<Address> addresses = geoCoder.getFromLocationName(edt_address.getText().toString(), 5);
                         if (addresses.size() > 0)
@@ -472,8 +480,8 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                 }else {
                     if (edt_latitude.getText().toString().length() > 0 && edt_longitude.getText().toString().length() > 0) {
                         try {
-                            InputMethodManager imm = (InputMethodManager) Objects.requireNonNull(getActivity()).getSystemService(INPUT_METHOD_SERVICE);
-                            Objects.requireNonNull(imm).hideSoftInputFromWindow(Objects.requireNonNull(getActivity().getCurrentFocus()).getWindowToken(), 0);
+                            InputMethodManager imm = (InputMethodManager) activity.getSystemService(INPUT_METHOD_SERVICE);
+                            Objects.requireNonNull(imm).hideSoftInputFromWindow(Objects.requireNonNull(activity.getCurrentFocus()).getWindowToken(), 0);
                             double lat = Double.parseDouble(edt_latitude.getText().toString());
                             double log = Double.parseDouble(edt_longitude.getText().toString());
                             if (null != currentLocationMarker) {
@@ -507,7 +515,7 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
             case R.id.tv_location_current:
                 try {
                     FirebaseUser currentUser = mAuth.getCurrentUser();
-                    if (currentUser != null && currentUser.getEmail() != null && !currentUser.getEmail().equals("android@gmail.com")) {
+                    if (currentUser != null && !currentUser.isAnonymous()) {
                         if (selectedLatLng != null){
                             startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)
                                     .putExtra("lat", selectedLatLng.latitude).putExtra("long", selectedLatLng.longitude), REFRESH_CODE);
@@ -543,16 +551,28 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                 try {
                     new AlertDialog.Builder(getActivity())
                             .setMessage("Do you want to logout?")
-                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    FirebaseAuth.getInstance().signOut();
-                                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-                                    mDatabase.child("device_tokens").child(currentUser.getUid()).removeValue();
-                                    startActivity(new Intent(getActivity(), Splash.class));
-                                    Objects.requireNonNull(getActivity()).overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                                    getActivity().finish();
-                                }
-                            })
+                            .setPositiveButton(android.R.string.yes, (dialog, which) -> FirebaseMessaging.getInstance().getToken()
+                                    .addOnCompleteListener(task -> {
+                                        if (!task.isSuccessful()) {
+                                            Log.w("TAG", "Fetching FCM registration token failed", task.getException());
+                                            return;
+                                        }
+
+                                        // Get new FCM registration token
+                                        String token = task.getResult();
+                                        FirebaseAuth.getInstance().signOut();
+                                        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                                        mDatabase.child("device_tokens").child(currentUser.getUid()).child(token).removeValue();
+                                        if (activity.pref.getPf().getRole().equals("Admin")){
+                                            mDatabase.child("admin_device_tokens").child(token).removeValue();
+                                        }
+                                        NotificationManager notificationManager =
+                                                (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+                                        String id = "hammock_life";
+                                        notificationManager.deleteNotificationChannel(id);
+                                        startActivity(new Intent(activity, Splash.class));
+                                        activity.finish();
+                                    }))
                             .setNegativeButton(android.R.string.no, null)
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
@@ -738,7 +758,7 @@ public class Frm_Home extends BaseFragment implements SensorEventListener, Googl
                 .setNegativeButton("String it Up", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if (currentUser.getEmail().equals("android@gmail.com")){
+                        if (currentUser.isAnonymous()){
                             dialogLogin();
                         }else {
                             startActivityForResult(new Intent(getActivity(), AddNew.class).putExtra("dataUser",((Main)getActivity()).dataUser)

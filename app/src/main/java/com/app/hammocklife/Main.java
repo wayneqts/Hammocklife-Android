@@ -12,11 +12,16 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.app.hammocklife.api.APIService;
+import com.app.hammocklife.api.APIUtils;
+import com.app.hammocklife.custom.Utils;
 import com.app.hammocklife.fragment.Frm_Home;
 import com.app.hammocklife.fragment.Frm_Login;
 import com.app.hammocklife.model.ObjectUser;
@@ -31,8 +36,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.gson.JsonObject;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -40,6 +48,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class Main extends BaseActivity {
     RelativeLayout rl_loading;
@@ -49,107 +61,115 @@ public class Main extends BaseActivity {
     public Frm_Home frm_home;
     public Frm_Login frm_login;
     public String tagDetail = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        init();
         ImagePipelineConfig config = ImagePipelineConfig.newBuilder(this)
                 .setProgressiveJpegConfig(new SimpleProgressiveJpegConfig())
                 .setResizeAndRotateEnabledForNetwork(true)
                 .setDownsampleEnabled(true)
                 .build();
         Fresco.initialize(this, config);
-        if (getIntent()!=null && getIntent().getStringExtra("Login")!=null && Objects.equals(getIntent().getStringExtra("Login"), "Skip")){
+        if (getIntent() != null && getIntent().getStringExtra("Login") != null && Objects.equals(getIntent().getStringExtra("Login"), "Skip")) {
             frm_home = new Frm_Home();
             addFragment(frm_home);
-        }else {
+        } else {
             frm_login = new Frm_Login();
             addFragment(frm_login);
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    100);
-        }
-        rl_loading = findViewById(R.id.rl_loading);
         getDataUser();
+        rl_loading = findViewById(R.id.rl_loading);
+
     }
 
-    public void showLoading(){
+    // init UI
+    private void init() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionNotifi.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+    private final ActivityResultLauncher<String> requestPermissionNotifi =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (!isGranted) {
+                    Toast.makeText(this, getString(R.string.permission_notifications_denied), Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    public void showLoading() {
         try {
             rl_loading.setVisibility(View.VISIBLE);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void hideLoading(){
+    public void hideLoading() {
         try {
             rl_loading.setVisibility(View.GONE);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void getDataUser(){
+    public void getDataUser() {
         mDataAllUser.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 dataUser = null;
                 for (final DataSnapshot ds : dataSnapshot.getChildren()) {
                     try {
-                        if (ds!=null && ds.getKey().equals(mAuth.getUid()) && ds.child("serverTime").getValue(Long.class)!=null && ds.child("role").getValue(String.class)!=null && ds.child("createdAt").getValue(Long.class)!=null) {
+                        if (ds != null && Objects.equals(ds.getKey(), mAuth.getUid()) && ds.child("serverTime").getValue(Long.class) != null && ds.child("role").getValue(String.class) != null && ds.child("createdAt").getValue(Long.class) != null) {
                             long createAt = ds.child("createdAt").getValue(Long.class);
                             String email = ds.child("email").getValue(String.class);
                             String employment = ds.child("employment").getValue(String.class);
                             List<String> hobbies = new ArrayList<>();
                             try {
-                                for (int q = 0; q <= ds.child("hobbies").getChildrenCount()-1; q++){
-                                    hobbies.add(ds.child("hobbies").child(q+"").getValue(String.class));
+                                for (int q = 0; q <= ds.child("hobbies").getChildrenCount() - 1; q++) {
+                                    hobbies.add(ds.child("hobbies").child(q + "").getValue(String.class));
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                             String livingLocation = ds.child("livingLocation").getValue(String.class);
                             String name = ds.child("name").getValue(String.class);
                             String profileUrl = ds.child("profileUrl").getValue(String.class);
                             String role = ds.child("role").getValue(String.class);
-                            if (role.equals("User")){
+                            if (role.equals("User")) {
                                 checkUser = false;
-                            } else if (role.equals("Admin")){
+                            } else if (role.equals("Admin")) {
                                 checkUser = true;
-                                try{
-                                    FirebaseInstanceId.getInstance().getInstanceId()
-                                            .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                                    try {
-                                                        if (!task.isSuccessful()) {
-                                                            Log.e("getInstanceId failed", task.getException().getMessage());
-                                                            return;
-                                                        }
-                                                        @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                                        String date = df.format(Calendar.getInstance().getTime());
-                                                        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-                                                        String token = task.getResult().getToken();
-                                                        mDatabase.child("admin_device_tokens").child(token).setValue(date+" - "+ds.getKey());
-                                                        Log.e("task push", token);
-                                                    }catch (Exception e){
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            });
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
+                                FirebaseMessaging.getInstance().getToken()
+                                        .addOnCompleteListener(task -> {
+                                            if (!task.isSuccessful()) {
+                                                Log.w("TAG", "Fetching FCM registration token failed", task.getException());
+                                                return;
+                                            }
+
+                                            // Get new FCM registration token
+                                            String token = task.getResult();
+                                            @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                            String date = df.format(Calendar.getInstance().getTime());
+                                            DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                                            mDatabase.child("admin_device_tokens").child(token).setValue(date + " - " + ds.getKey());
+                                        });
                             }
                             long serverTime = ds.child("serverTime").getValue(Long.class);
                             dataUser = new ObjectUser(createAt, serverTime, email, employment, livingLocation, name, profileUrl, role, hobbies);
+                            pref.setPf(dataUser);
                             frm_home.setTextUser(dataUser);
-                            Log.e("getUser","getUser");
+                            Log.e("getUser", "getUser");
                         }
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -164,14 +184,14 @@ public class Main extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        if (tagDetail!=null && tagDetail.length()>0){
+        if (tagDetail != null && tagDetail.length() > 0) {
             try {
-                Log.e("tagDetail", tagDetail+" - - ");
+                Log.e("tagDetail", tagDetail + " - - ");
                 assert getFragmentManager() != null;
                 getFragmentManager().popBackStack();
                 tagDetail = "";
                 super.onBackPressed();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
@@ -198,8 +218,8 @@ public class Main extends BaseActivity {
         if (frm_login != null) {
             frm_login.onActivityResult(requestCode, resultCode, data);
         }
-        if (frm_home != null){
-            if (resultCode == 977){
+        if (frm_home != null) {
+            if (resultCode == 977) {
                 frm_home.selectedLatLng = null;
             }
         }

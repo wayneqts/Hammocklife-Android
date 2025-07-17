@@ -25,17 +25,15 @@ public class Splash2 extends BaseActivity {
         handler.postDelayed(() -> {
             try {
                 FirebaseUser currentUser = mAuth.getCurrentUser();
-                if(currentUser!=null && currentUser.getEmail()!=null && !currentUser.getEmail().equals("android@gmail.com")) {
+                if(currentUser != null) {
                     startActivity(new Intent(Splash2.this, Main.class).putExtra("Login", "Skip"));
                 }else {
-                    startActivity(new Intent(Splash2.this, Splash.class).putExtra("Login", "Login"));
+                    startActivity(new Intent(Splash2.this, Splash.class));
                 }
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 finish();
             } catch (Exception e){
                 e.printStackTrace();
-                startActivity(new Intent(Splash2.this, Splash.class).putExtra("Login", "Login"));
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                startActivity(new Intent(Splash2.this, Splash.class));
                 finish();
             }
         }, 1000);

@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "71139676647-m0nsebquaj89tt6f3otddbv0hvf01q6b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.hammocklife",
+            "certificate_hash": "60cbe0eeccdfaf8d8452cfbbed34b9c6d3b97384"
+          }
+        },
+        {
           "client_id": "71139676647-vrmnj4mmtr521infrkuhpvr7a9nuqice.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

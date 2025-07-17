@@ -22,8 +22,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -85,26 +84,18 @@ public class Frm_Register extends BaseFragment implements View.OnClickListener {
             mDatabase.child("users").child(taskResult.getResult().getUser().getUid()).child("role").setValue("User");
             mDatabase.child("users").child(taskResult.getResult().getUser().getUid()).child("serverTime").setValue(startTime);
             try{
-                FirebaseInstanceId.getInstance().getInstanceId()
-                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                try {
-                                    if (!task.isSuccessful()) {
-                                        Log.e("getInstanceId failed", task.getException().getMessage());
-                                        return;
-                                    }
-                                    // Get new Instance ID token
-                                    @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                    String date = df.format(Calendar.getInstance().getTime());
-                                    String token = task.getResult().getToken();
-                                    mDatabase.child("device_tokens").child(taskResult.getResult().getUser().getUid()).child(token).setValue(date);
-                                    Log.e("date", date);
-                                    Log.e("token", token);
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
+                FirebaseMessaging.getInstance().getToken()
+                        .addOnCompleteListener(task1 -> {
+                            if (!task1.isSuccessful()) {
+                                Log.w("TAG", "Fetching FCM registration token failed", task1.getException());
+                                return;
                             }
+
+                            @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            String date = df.format(Calendar.getInstance().getTime());
+                            String token = task1.getResult();
+                            DatabaseReference mDb = FirebaseDatabase.getInstance().getReference();
+                            mDb.child("device_tokens").child(taskResult.getResult().getUser().getUid()).child(token).setValue(date);
                         });
             }catch (Exception e){
                 e.printStackTrace();

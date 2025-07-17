@@ -2,17 +2,13 @@ package com.app.hammocklife.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,10 +26,9 @@ import com.app.hammocklife.Splash;
 import com.app.hammocklife.custom.AppPreferences;
 import com.app.hammocklife.custom.AuthenticationDialog;
 import com.app.hammocklife.custom.AuthenticationListener;
-import com.app.hammocklife.custom.RetrofitClient;
+import com.app.hammocklife.api.RetrofitClient;
 import com.app.hammocklife.custom.ServiceCallbacks;
 import com.app.hammocklife.model.APIinstagram;
-import com.app.hammocklife.model.APIinstagram2;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -43,7 +38,6 @@ import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -56,15 +50,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-import com.google.gson.JsonObject;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -75,10 +66,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.content.Context.INPUT_METHOD_SERVICE;
-import static com.facebook.FacebookSdk.getApplicationContext;
-import static com.facebook.GraphRequest.TAG;
-
 public class Frm_Login extends BaseFragment implements View.OnClickListener, AuthenticationListener {
     private AppCompatEditText edt_email, edt_password;
     private CallbackManager mCallbackManager;
@@ -86,12 +73,13 @@ public class Frm_Login extends BaseFragment implements View.OnClickListener, Aut
     private AppPreferences appPreferences = null;
     private AuthenticationDialog authenticationDialog = null;
     private String token = null;
+    Main activity;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
+        activity = (Main) getActivity();
         View view = inflater.inflate(R.layout.frm_login, container, false);
         initUI(view);
         loginFacebook();
@@ -117,24 +105,15 @@ public class Frm_Login extends BaseFragment implements View.OnClickListener, Aut
             img_instagram.setOnClickListener(this);
             setLayoutView(img_logo, (wwidth - 100), (wwidth - 100) * 342 / 931);
 
-            edt_password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                @Override
-                public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                    if (i == EditorInfo.IME_ACTION_DONE) {
-                        if (Objects.requireNonNull(edt_password.getText()).toString().length()>=6) {
-                            showLoading();
-                            loginClick(Objects.requireNonNull(edt_email.getText()).toString(), edt_password.getText().toString());
-                        }
-                        try {
-                            InputMethodManager imm = (InputMethodManager) Objects.requireNonNull(getActivity()).getSystemService(INPUT_METHOD_SERVICE);
-                            Objects.requireNonNull(imm).hideSoftInputFromWindow(Objects.requireNonNull(getActivity().getCurrentFocus()).getWindowToken(), 0);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return true;
+            edt_password.setOnEditorActionListener((textView, i, keyEvent) -> {
+                if (i == EditorInfo.IME_ACTION_DONE) {
+                    if (Objects.requireNonNull(edt_password.getText()).toString().length()>=6) {
+                        showLoading();
+                        loginClick(Objects.requireNonNull(edt_email.getText()).toString(), edt_password.getText().toString());
                     }
-                    return false;
+                    return true;
                 }
+                return false;
             });
         }catch (Exception e){
             e.printStackTrace();
@@ -144,45 +123,33 @@ public class Frm_Login extends BaseFragment implements View.OnClickListener, Aut
     private void loginClick(String email, String password){
         try {
             mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(Objects.requireNonNull(getActivity()), new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull final Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                try {
-                                    FirebaseInstanceId.getInstance().getInstanceId()
-                                            .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<InstanceIdResult> taska) {
-                                                    try {
-                                                        if (!taska.isSuccessful()) {
-                                                            Log.e("getInstanceId failed", taska.getException().getMessage());
-                                                            return;
-                                                        }
-                                                        // Get new Instance ID token
-                                                        @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                                        String date = df.format(Calendar.getInstance().getTime());
-                                                        String token = taska.getResult().getToken();
-                                                        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-                                                        mDatabase.child("device_tokens").child(task.getResult().getUser().getUid()).child(token).setValue(date);
-                                                        Log.e("date", date);
-                                                        Log.e("token", token);
-                                                    }catch (Exception e){
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            });
-                                    ((Main) getActivity()).frm_home = new Frm_Home();
-                                    addFragmentBack(((Main) getActivity()).frm_home);
-                                    ((Main) getActivity()).getDataUser();
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
-                                hideLoading();
-                            } else {
-                                Toast.makeText(getActivity(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
-                                Log.e("error", Objects.requireNonNull(task.getException().getMessage()));
-                                hideLoading();
+                    .addOnCompleteListener(activity, task -> {
+                        if (task.isSuccessful()) {
+                            try {
+                                FirebaseMessaging.getInstance().getToken()
+                                        .addOnCompleteListener(task1 -> {
+                                            if (!task1.isSuccessful()) {
+                                                Log.w("TAG", "Fetching FCM registration token failed", task1.getException());
+                                                return;
+                                            }
+
+                                            @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                            String date = df.format(Calendar.getInstance().getTime());
+                                            String token = task1.getResult();
+                                            DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                                            mDatabase.child("device_tokens").child(task.getResult().getUser().getUid()).child(token).setValue(date);
+                                        });
+                                activity.frm_home = new Frm_Home();
+                                addFragmentBack(activity.frm_home);
+                                activity.getDataUser();
+                            }catch (Exception e){
+                                e.printStackTrace();
                             }
+                            hideLoading();
+                        } else {
+                            Toast.makeText(getActivity(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
+                            Log.e("error", Objects.requireNonNull(task.getException().getMessage()));
+                            hideLoading();
                         }
                     });
         }catch (Exception e){
@@ -200,38 +167,29 @@ public class Frm_Login extends BaseFragment implements View.OnClickListener, Aut
                             if (task.isSuccessful()) {
                                 try {
                                     hideLoading();
-                                    final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
                                     long startTime = System.currentTimeMillis()/1000;
                                     mDatabase.child("users").child(task.getResult().getUser().getUid()).child("createdAt").setValue(startTime);
                                     mDatabase.child("users").child(task.getResult().getUser().getUid()).child("email").setValue(email);
                                     mDatabase.child("users").child(task.getResult().getUser().getUid()).child("name").setValue("");
                                     mDatabase.child("users").child(task.getResult().getUser().getUid()).child("role").setValue("User");
                                     mDatabase.child("users").child(task.getResult().getUser().getUid()).child("serverTime").setValue(startTime);
-                                    FirebaseInstanceId.getInstance().getInstanceId()
-                                            .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<InstanceIdResult> taska) {
-                                                    try {
-                                                        if (!taska.isSuccessful()) {
-                                                            Log.e("getInstanceId failed", taska.getException().getMessage());
-                                                            return;
-                                                        }
-                                                        // Get new Instance ID token
-                                                        @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                                        String date = df.format(Calendar.getInstance().getTime());
-                                                        String token = taska.getResult().getToken();
-                                                        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-                                                        mDatabase.child("device_tokens").child(task.getResult().getUser().getUid()).child(token).setValue(date);
-                                                        Log.e("date", date);
-                                                        Log.e("token", token);
-                                                    }catch (Exception e){
-                                                        e.printStackTrace();
-                                                    }
+                                    FirebaseMessaging.getInstance().getToken()
+                                            .addOnCompleteListener(task1 -> {
+                                                if (!task1.isSuccessful()) {
+                                                    Log.w("TAG", "Fetching FCM registration token failed", task1.getException());
+                                                    return;
                                                 }
+
+                                                @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                                String date = df.format(Calendar.getInstance().getTime());
+                                                String token = task1.getResult();
+                                                DatabaseReference mDb = FirebaseDatabase.getInstance().getReference();
+                                                mDb.child("device_tokens").child(task.getResult().getUser().getUid()).child(token).setValue(date);
                                             });
-                                    ((Main) getActivity()).frm_home = new Frm_Home();
-                                    addFragmentBack(((Main) getActivity()).frm_home);
-                                    ((Main) getActivity()).getDataUser();
+                                    activity.frm_home = new Frm_Home();
+                                    addFragmentBack(activity.frm_home);
+                                    activity.getDataUser();
                                 }catch (Exception e){
                                     e.printStackTrace();
                                 }
@@ -353,63 +311,46 @@ public class Frm_Login extends BaseFragment implements View.OnClickListener, Aut
                         mDatabase.child("users").child(taskResult.getUid()).child("serverTime").setValue(startTime);
                         mDatabase.child("users").child(taskResult.getUid()).child("profileUrl").setValue("https://graph.facebook.com/"+facebook_ID+"/picture?width=500&height=500");
                         try{
-                            FirebaseInstanceId.getInstance().getInstanceId()
-                                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                            try {
-                                                if (!task.isSuccessful()) {
-                                                    Log.e("getInstanceId failed", task.getException().getMessage());
-                                                    return;
-                                                }
-                                                // Get new Instance ID token
-                                                @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                                String date = df.format(Calendar.getInstance().getTime());
-                                                String token = task.getResult().getToken();
-                                                mDatabase.child("device_tokens").child(taskResult.getUid()).child(token).setValue(date);
-                                                Log.e("date", date);
-                                                Log.e("token", token);
-                                            }catch (Exception e){
-                                                e.printStackTrace();
-                                            }
+                            FirebaseMessaging.getInstance().getToken()
+                                    .addOnCompleteListener(task1 -> {
+                                        if (!task1.isSuccessful()) {
+                                            Log.w("TAG", "Fetching FCM registration token failed", task1.getException());
+                                            return;
                                         }
+
+                                        @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                        String date = df.format(Calendar.getInstance().getTime());
+                                        String token = task1.getResult();
+                                        DatabaseReference mDb = FirebaseDatabase.getInstance().getReference();
+                                        mDb.child("device_tokens").child(taskResult.getUid()).child(token).setValue(date);
                                     });
                             hideLoading();
-                            ((Main) getActivity()).frm_home = new Frm_Home();
-                            addFragmentBack(((Main) getActivity()).frm_home);
-                            ((Main) getActivity()).getDataUser();
+                            activity.frm_home = new Frm_Home();
+                            addFragmentBack(activity.frm_home);
+                            activity.getDataUser();
                         }catch (Exception e){
                             e.printStackTrace();
                         }
                     }else {
                         Log.e("exists1","exists1");
                         try{
-                            FirebaseInstanceId.getInstance().getInstanceId()
-                                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                            try {
-                                                if (!task.isSuccessful()) {
-                                                    Log.e("getInstanceId failed", task.getException().getMessage());
-                                                    return;
-                                                }
-                                                // Get new Instance ID token
-                                                @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                                String date = df.format(Calendar.getInstance().getTime());
-                                                String token = task.getResult().getToken();
-                                                DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-                                                mDatabase.child("device_tokens").child(taskResult.getUid()).child(token).setValue(date);
-                                                Log.e("date", date);
-                                                Log.e("token", token);
-                                            }catch (Exception e){
-                                                e.printStackTrace();
-                                            }
+                            FirebaseMessaging.getInstance().getToken()
+                                    .addOnCompleteListener(task1 -> {
+                                        if (!task1.isSuccessful()) {
+                                            Log.w("TAG", "Fetching FCM registration token failed", task1.getException());
+                                            return;
                                         }
+
+                                        @SuppressLint("SimpleDateFormat") DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                        String date = df.format(Calendar.getInstance().getTime());
+                                        String token = task1.getResult();
+                                        DatabaseReference mDb = FirebaseDatabase.getInstance().getReference();
+                                        mDb.child("device_tokens").child(taskResult.getUid()).child(token).setValue(date);
                                     });
                             hideLoading();
-                            ((Main) getActivity()).frm_home = new Frm_Home();
-                            addFragmentBack(((Main) getActivity()).frm_home);
-                            ((Main) getActivity()).getDataUser();
+                            activity.frm_home = new Frm_Home();
+                            addFragmentBack(activity.frm_home);
+                            activity.getDataUser();
                         }catch (Exception e){
                             e.printStackTrace();
                         }
@@ -473,7 +414,6 @@ public class Frm_Login extends BaseFragment implements View.OnClickListener, Aut
             case R.id.tv_forgot_password:
                 try {
                     startActivity(new Intent(getActivity(), ForgotPassword.class));
-                    Objects.requireNonNull(getActivity()).overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 }catch (Exception e){
                     e.printStackTrace();
                 }

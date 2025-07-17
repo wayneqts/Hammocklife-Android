@@ -3,7 +3,6 @@ package com.app.hammocklife;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatImageView;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
@@ -12,7 +11,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Base64;
@@ -22,15 +20,12 @@ import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.app.hammocklife.fragment.Frm_Home;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 public class Splash extends BaseActivity {
@@ -43,6 +38,12 @@ public class Splash extends BaseActivity {
         setContentView(R.layout.activity_splash);
         initUI();
         printHashKey(Splash.this);
+        bt_login.setOnClickListener(view -> {
+            startActivity(new Intent(Splash.this, Main.class).putExtra("Login", "Login"));
+            finish();
+        });
+
+        bt_skip.setOnClickListener(view -> loginAnonymously());
     }
 
     private void initUI() {
@@ -55,67 +56,35 @@ public class Splash extends BaseActivity {
         img_logo.setVisibility(View.VISIBLE);
         img_logo.startAnimation(AnimationUtils.loadAnimation(Splash.this, R.anim.anim_top));
         final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                ln_animation.setVisibility(View.VISIBLE);
-                ln_animation.startAnimation(AnimationUtils.loadAnimation(Splash.this, android.R.anim.fade_in));
-            }
+        handler.postDelayed(() -> {
+            ln_animation.setVisibility(View.VISIBLE);
+            ln_animation.startAnimation(AnimationUtils.loadAnimation(Splash.this, android.R.anim.fade_in));
         }, 500);
 
-        bt_login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(Splash.this, Main.class).putExtra("Login", "Login"));
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                finish();
-            }
-        });
-
-        bt_skip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                loginClick("android@gmail.com", "123456");
-            }
-        });
+       rqMapPer();
     }
 
-    private void registerClick(final String email, final String password){
-        try{
-            mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(Splash.this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                startActivity(new Intent(Splash.this, Main.class).putExtra("Login", "Skip"));
-                                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                                finish();
-                            }
-                        }
-                    });
-        }catch (Exception e){
-            e.printStackTrace();
+    // request map permission
+    private void rqMapPer(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    100);
         }
     }
 
-    private void loginClick(final String email, final String password){
-        try {
-            mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(Objects.requireNonNull(Splash.this), new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                startActivity(new Intent(Splash.this, Main.class).putExtra("Login", "Skip"));
-                                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                                finish();
-                            } else {
-                                registerClick(email, password);
-                            }
-                        }
-                    });
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+    private void loginAnonymously(){
+        mAuth.signInAnonymously()
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        startActivity(new Intent(Splash.this, Main.class).putExtra("Login", "Skip"));
+                        finish();
+                    } else {
+                        Toast.makeText(Splash.this, "Authentication failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     public static void printHashKey(Context pContext) {
@@ -129,6 +98,16 @@ public class Splash extends BaseActivity {
             }
         } catch (Exception e) {
             Log.e("aaa", "printHashKey()", e);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100){
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, getString(R.string.please_allow_map_access_to_use_the_app), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

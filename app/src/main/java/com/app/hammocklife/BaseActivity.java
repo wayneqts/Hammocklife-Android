@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.app.hammocklife.custom.AppPreferences;
 import com.app.hammocklife.model.ObjectUser;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -21,11 +22,13 @@ public class BaseActivity extends AppCompatActivity {
     int wwidth = 0, height = 0;
     FirebaseAuth mAuth;
     boolean checkUser = false;
+    public AppPreferences pref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
+        pref = new AppPreferences(this);
         getWidthHeight();
     }
 
